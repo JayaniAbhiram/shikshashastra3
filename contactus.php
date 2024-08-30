@@ -217,20 +217,21 @@ input:focus, textarea:focus, keygen:focus, select:focus {
 					</div>
 					<div class="sec2contactform">
 						<h3 class="sec2frmtitle">Want to Know More?? Drop Us a Mail</h3>
-						<form action="">
-							<div class="clearfix">
-								<input class="col2 first" type="text" placeholder="FirstName">
-								<input class="col2 last" type="text" placeholder="LastName">
-							</div>
-							<div class="clearfix">
-								<input  class="col2 first" type="Email" placeholder="Email">
-								<input class="col2 last" type="text" placeholder="Contact Number">
-							</div>
-							<div class="clearfix">
-								<textarea name="textarea" id="" cols="30" rows="7">Your message here...</textarea>
-							</div>
-							<div class="clearfix"><input type="submit" value="Send"></div>
-						</form>
+						<form action="contactus.php" method="post">
+    <div class="clearfix">
+        <input class="col2 first" type="text" name="firstname" placeholder="First Name" required>
+        <input class="col2 last" type="text" name="lastname" placeholder="Last Name" required>
+    </div>
+    <div class="clearfix">
+        <input class="col2 first" type="email" name="email" placeholder="Email" required>
+        <input class="col2 last" type="text" name="contactnumber" placeholder="Contact Number" required>
+    </div>
+    <div class="clearfix">
+        <textarea name="message" cols="30" rows="7" placeholder="Your message here..." required></textarea>
+    </div>
+    <div class="clearfix"><input type="submit" value="Send"></div>
+</form>
+
 					</div>
 
 				</div>
@@ -242,3 +243,30 @@ input:focus, textarea:focus, keygen:focus, select:focus {
   
 </body>
 </html>
+
+<?php
+// Include your database connection
+include("connect.php");
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Retrieve and sanitize form data
+    $firstname = mysqli_real_escape_string($con, $_POST['firstname']);
+    $lastname = mysqli_real_escape_string($con, $_POST['lastname']);
+    $email = mysqli_real_escape_string($con, $_POST['email']);
+    $contactnumber = mysqli_real_escape_string($con, $_POST['contactnumber']);
+    $message = mysqli_real_escape_string($con, $_POST['message']);
+
+    // Insert the data into the database
+    $query = "INSERT INTO contacts (firstname, lastname, email, contactnumber, message) 
+              VALUES ('$firstname', '$lastname', '$email', '$contactnumber', '$message')";
+
+    if (mysqli_query($con, $query)) {
+        echo "<script>alert('Your message has been sent successfully!');</script>";
+    } else {
+        echo "Error: " . $query . "<br>" . mysqli_error($con);
+    }
+
+    // Close the database connection
+    mysqli_close($con);
+}
+?>

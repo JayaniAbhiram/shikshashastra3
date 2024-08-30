@@ -92,7 +92,7 @@
 
             <div style="margin-top:50px;text-align:center;">
                 <p>Don't have an account ....???</p>
-                <a href="contactus.php" style="display: inline-block; background-color: orange; color: black; padding: 15px 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px;margin-top:10px;">Register here</a>
+                <a href="registercommunity.php" style="display: inline-block; background-color: orange; color: black; padding: 15px 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin: 4px 2px; cursor: pointer; border-radius: 10px;margin-top:10px;">Register here</a>
             <br>
     </div>
 
@@ -106,3 +106,5 @@
 </body>
 
 </html>
+
+

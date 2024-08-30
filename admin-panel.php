@@ -10,11 +10,149 @@ if (!$con) {
 
 if (isset($_POST['docsub'])) {
   $community = $_POST['community'];
+  $cname = $_POST['cname'];
   $dpassword = $_POST['dpassword'];
   $demail = $_POST['demail'];
   $spec = $_POST['special'];
   $state = $_POST['state'];  // Add state
   $city = $_POST['city'];    // Add city
+
+  if (empty($community) || empty($cname) || empty($dpassword) || empty($demail) || empty($spec) || empty($state) || empty($city)) {
+    echo "
+    <div id='error-popup' class='error-popup'>
+        <div class='error-popup-content'>
+            <div class='error-popup-header'>
+                <h2>Error</h2>
+            </div>
+            <div class='error-popup-body'>
+                <p>All fields are required.</p>
+            </div>
+            <div class='error-popup-footer'>
+                <button id='error-popup-ok' class='error-popup-button'>OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Show the error popup
+        var popup = document.getElementById('error-popup');
+        var popupContent = document.querySelector('.error-popup-content');
+        var popupOk = document.getElementById('error-popup-ok');
+
+        popup.style.display = 'block';
+        popupContent.classList.add('error-show-popup');
+
+        // Close the popup when the OK button is clicked
+        popupOk.onclick = function() {
+            popupContent.classList.remove('error-show-popup');
+            popupContent.classList.add('error-hide-popup');
+            setTimeout(function() {
+                popup.style.display = 'none';
+                window.history.back();
+            }, 800);
+        };
+
+        // Automatically close the popup after 3 seconds
+        setTimeout(function() {
+            popupContent.classList.remove('error-show-popup');
+            popupContent.classList.add('error-hide-popup');
+            setTimeout(function() {
+                popup.style.display = 'none';
+                window.history.back();
+            }, 800);
+        }, 3000);
+    </script>
+    <style>
+        /* Popup container */
+        .error-popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            animation: fadeIn 1s;
+        }
+
+        /* Popup content */
+        .error-popup-content {
+            position: relative;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+            transform: scale(0.5);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        .error-show-popup {
+            transform: scale(1);
+            opacity: 1;
+            animation: bounceIn 1s ease-out;
+        }
+
+        .error-hide-popup {
+            animation: fadeOut 0.8s ease-out;
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        .error-popup-header {
+            margin-bottom: 20px;
+        }
+
+        .error-popup-header h2 {
+            margin: 0;
+            color: #f44336;
+        }
+
+        .error-popup-body {
+            margin-bottom: 20px;
+        }
+
+        .error-popup-footer {
+            margin-top: 20px;
+        }
+
+        .error-popup-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f44336;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .error-popup-button:hover {
+            background-color: #e53935;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(1.3); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+    ";
+    exit();
+}
 
   // Check if the combination of community name and specialization already exists
   $checkQuery = "SELECT * FROM community WHERE username='$community' AND spec='$spec'";
@@ -27,17 +165,148 @@ if (isset($_POST['docsub'])) {
   }
 
   // Insert the new community with state and city
-  $query = "INSERT INTO community(username, password, email, spec, state, city) 
-            VALUES('$community', '$dpassword', '$demail', '$spec', '$state', '$city')";
+  $query = "INSERT INTO community(username, password, email, spec, state, city,cname) 
+            VALUES('$community', '$dpassword', '$demail', '$spec', '$state', '$city','$cname')";
   
   $result = mysqli_query($con, $query);
 
   if ($result) {
-    echo "<script>alert('Community added Successfully.');
-              window.location.href = 'admin-panel.php';</script>";
-  } else {
+    echo "
+    <div id='success-popup' class='success-popup'>
+        <div class='success-popup-content'>
+            <div class='success-popup-header'>
+                <h2>Success</h2>
+            </div>
+            <div class='success-popup-body'>
+                <p>Community added successfully.</p>
+            </div>
+            <div class='success-popup-footer'>
+                <button id='success-popup-ok' class='success-popup-button'>OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Show the success popup
+        var popup = document.getElementById('success-popup');
+        var popupContent = document.querySelector('.success-popup-content');
+        var popupOk = document.getElementById('success-popup-ok');
+
+        popup.style.display = 'block';
+        popupContent.classList.add('success-show-popup');
+
+        // Close the popup when the OK button is clicked
+        popupOk.onclick = function() {
+            popupContent.classList.remove('success-show-popup');
+            popupContent.classList.add('success-hide-popup');
+            setTimeout(function() {
+                popup.style.display = 'none';
+                window.location.href = 'admin-panel.php';
+            }, 800);
+        };
+
+        // Automatically close the popup after 3 seconds
+        setTimeout(function() {
+            popupContent.classList.remove('success-show-popup');
+            popupContent.classList.add('success-hide-popup');
+            setTimeout(function() {
+                popup.style.display = 'none';
+                window.location.href = 'admin-panel.php';
+            }, 800);
+        }, 3000);
+    </script>
+    <style>
+        /* Popup container */
+        .success-popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 1s;
+        }
+
+        /* Popup content */
+        .success-popup-content {
+            position: relative;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+            transform: scale(0.5);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        .success-show-popup {
+            transform: scale(1);
+            opacity: 1;
+            animation: bounceIn 1s ease-out;
+        }
+
+        .success-hide-popup {
+            animation: fadeOut 0.8s ease-out;
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        .success-popup-header {
+            margin-bottom: 20px;
+        }
+
+        .success-popup-header h2 {
+            margin: 0;
+            color: #4CAF50;
+        }
+
+        .success-popup-body {
+            margin-bottom: 20px;
+        }
+
+        .success-popup-footer {
+            margin-top: 20px;
+        }
+
+        .success-popup-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .success-popup-button:hover {
+            background-color: #45a049;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(1.3); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+    ";
+} else {
     echo "Error: " . mysqli_error($con);
-  }
+}
 }
 
 // Function to check if the book is accepted
@@ -165,6 +434,12 @@ function validateDeleteCommunityForm() {
         <a href="#list-pres" id="list-pres-list" role="tab" data-toggle="list" aria-controls="home">
           <i class='bx bx-table'></i>
           <span class="links_name">Feedback details</span>
+        </a>
+      </li>
+      <li>
+        <a href="#list-registercommunities" id="list-adoc-list" role="tab" data-toggle="list" aria-controls="home">
+          <i class='bx bxs-book-add'></i>
+          <span class="links_name">New Communities</span>
         </a>
       </li>
       <li>
@@ -327,6 +602,7 @@ function validateDeleteCommunityForm() {
       <thead>
         <tr>
         <th scope="col">Community No</th>
+          <!-- <th scope="col">Community Username</th> -->
           <th scope="col">Community Name</th>
           <th scope="col">Specialization</th>
           <th scope="col">Email</th>
@@ -341,12 +617,13 @@ function validateDeleteCommunityForm() {
         <?php
 include("connect.php");
 global $con;
-$query = "SELECT * FROM community";
+$query = "SELECT * FROM community order by community_no desc";
 $result = mysqli_query($con, $query);
 while ($row = mysqli_fetch_array($result)) {
     echo "
     <tr>
         <td>".$row['community_no']."</td>
+        
         <td>".$row['username']."</td>
         <td>".$row['spec']."</td>
         <td>".$row['email']."</td>
@@ -415,7 +692,7 @@ $query = "
     SELECT v.pid, v.fname, v.lname, v.gender, v.email, v.contact, COALESCE(SUM(f.feedpoints), 0) AS total_points
     FROM volunteer v
     LEFT JOIN feedback f ON v.fname = f.fname AND v.lname = f.lname
-    GROUP BY v.pid, v.fname, v.lname, v.gender, v.email, v.contact
+    GROUP BY v.pid, v.fname, v.lname, v.gender, v.email, v.contact order by v.pid desc
 ";
 $result = mysqli_query($con, $query);
 
@@ -486,7 +763,7 @@ while ($row = mysqli_fetch_array($result)) {
           // $con = mysqli_connect("localhost", "root", "", "shikshashastra1");
           global $con;
 
-          $query = "select * from book;";
+          $query = "select * from book order by AppID desc;";
           $result = mysqli_query($con, $query);
           while ($row = mysqli_fetch_array($result)) {
             $id = $row['AppID'];
@@ -562,7 +839,7 @@ $query = "
         FROM feedback
         GROUP BY fname, lname
     ) summed_feedback
-    ON f.fname = summed_feedback.fname AND f.lname = summed_feedback.lname
+    ON f.fname = summed_feedback.fname AND f.lname = summed_feedback.lname order by f.AppID desc
 ";
 $result = mysqli_query($con, $query);
 
@@ -600,15 +877,200 @@ while ($row = mysqli_fetch_array($result)) {
         <br>
       </div>
     </div>
+
+    <!-- newly added communities -->
+     
+    <div class="home-content" id="list-registercommunities">
+        <div class="table-container">
+        <table class="pres-table" style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 16px; text-align: left; border: 1px solid #ccc; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);">
+    <thead>
+        <tr style="background-color: #4CAF50; color: white; border-bottom: 3px solid #ddd;">
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">ID</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Community Name</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">In-Charge</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Mobile Number</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Address</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">State</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">City</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Created At</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Email</th>
+            <th scope="col" style="padding: 12px; border-right: 1px solid #ccc;">Specializations</th>
+            <th scope="col" style="padding: 12px;">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        // Database connection
+        // 
+        include('connect.php');
+
+        // Check connection
+        if (!$con) {
+            die("Connection failed: " . mysqli_connect_error());
+        }
+
+        // Query to get details from the registercommunity table
+        $query = "SELECT id, community_name, incharge, mobile_number, address, state, city, created_at, email, specializations FROM registercommunity order by id desc";
+        $result = mysqli_query($con, $query);
+
+        if ($result) {
+            while ($row = mysqli_fetch_assoc($result)) {
+                $id = $row['id'];
+                $community_name = $row['community_name'];
+                $incharge = $row['incharge'];
+                $mobile_number = $row['mobile_number'];
+                $address = $row['address'];
+                $state = $row['state'];
+                $city = $row['city'];
+                $created_at = $row['created_at'];
+                $email = $row['email'];
+                $specializations = $row['specializations'];
+
+                echo "<tr style='border-bottom: 1px solid #ccc;'>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$id</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$community_name</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$incharge</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$mobile_number</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$address</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$state</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$city</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$created_at</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$email</td>
+                    <td style='padding: 12px; border-right: 1px solid #eee;'>$specializations</td>
+                    <td style='padding: 12px;'>
+                        <form action='' method='post' onsubmit='return confirmDelete();' style='display:inline; margin-right: 10px;'>
+                            <input type='hidden' name='delete_id' value='$id'>
+                            <input type='submit' class='btn btn-delete' value='Delete' style='background-color: #ff4d4d; color: white; border: none; padding: 8px 12px; cursor: pointer;'>
+                        </form>
+                        <form action='' method='post' style='display:inline;'>
+                            <input type='hidden' name='check_email' value='$email'>
+                            <input type='submit' class='btn btn-check' value='Check' onclick='return checkEmail();' style='background-color: #4CAF50; color: white; border: none; padding: 8px 12px; cursor: pointer;'>
+                        </form>
+                    </td>
+                </tr>";
+            }
+        } else {
+            echo "<tr><td colspan='11' style='padding: 12px; text-align: center;'>No records found</td></tr>";
+        }
+
+        mysqli_close($con);
+        ?>
+    </tbody>
+</table>
+
+        </div>
+
+        <script>
+        function confirmDelete() {
+            return confirm('Are you sure you want to delete this record?');
+        }
+
+        function checkEmail() {
+            return true; // Form submission will be handled by PHP
+        }
+        </script>
+
+<?php
+if (isset($_POST['delete_id'])) {
+    $delete_id = $_POST['delete_id'];
+
+    // Database connection
+    include('connect.php');
+
+    // Check connection
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    // Retrieve email of the record to be deleted
+    $email_query = "SELECT email FROM registercommunity WHERE id = ?";
+    $stmt = mysqli_prepare($con, $email_query);
+    mysqli_stmt_bind_param($stmt, "i", $delete_id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $email);
+    mysqli_stmt_fetch($stmt);
+    mysqli_stmt_close($stmt);
+
+    if ($email) {
+        // Email is found, proceed to delete the record
+        $delete_query = "DELETE FROM registercommunity WHERE id = ?";
+        $stmt = mysqli_prepare($con, $delete_query);
+        mysqli_stmt_bind_param($stmt, "i", $delete_id);
+        if (mysqli_stmt_execute($stmt)) {
+            echo "<script>alert('Record deleted successfully'); window.location.href='admin-panel.php';</script>";
+        } else {
+            echo "<script>alert('Error deleting record');</script>";
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        // Email not found, show an alert and redirect
+        echo "<script>alert('Community not found'); window.location.href='admin-panel.php';</script>";
+    }
+
+    mysqli_close($con);
+}
+
+if (isset($_POST['check_email'])) {
+    $check_email = $_POST['check_email'];
+
+    // Database connection
+    $con = mysqli_connect("localhost", "root", "", "shikshashastra3");
+
+    // Check connection
+    if (!$con) {
+        die("Connection failed: " . mysqli_connect_error());
+    }
+
+    // Check if the email exists in the `community` table
+    $email_query = "SELECT email FROM community WHERE email = ?";
+    $stmt = mysqli_prepare($con, $email_query);
+    mysqli_stmt_bind_param($stmt, "s", $check_email);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_store_result($stmt);
+
+    if (mysqli_stmt_num_rows($stmt) > 0) {
+        echo "<script>alert('This community is present in the community table.');</script>";
+    } else {
+        echo "<script>alert('This community is not present in the community table.');</script>";
+    }
+
+    mysqli_stmt_close($stmt);
+    mysqli_close($con);
+}
+?>
+
+
+    </div>
+
+
+
+
+    <!-- <div class="home-content" id="list-registeredcommunities"> -->
+    
+    
+
+      
+
+
+
+
+
     <!-- Add community section -->
     <div class="home-content" id="list-settings">
-  <div class="form-container">
+  <div class="form-container"style="height: 600px; overflow-y: auto;">
     <form class="form-group" method="post" action="admin-panel.php" onsubmit="return validateCommunityForm();">
       <div class="form-row">
-        <div class="form-group1">
-          <label for="community">Community Name:</label>
-          <input type="text" class="form-control" name="community" onkeydown="return alphaOnly(event);">
-        </div>
+      <div class="form-group1">
+  <label for="community">Community Name:</label>
+  <input type="text" class="form-control" name="community" id="community" oninput="checkMatchingFields();" onkeydown="return alphaOnly(event);">
+</div>
+<div class="form-group1">
+  <label for="cname">Confirm COmmunity Name:</label>
+  <input type="text" class="form-control" name="cname" id="cname" oninput="checkMatchingFields();" onkeydown="return alphaOnly(event);">
+</div>
+<div id="error-message" style="color: red; display: none;">
+  Community Name and Community Username must be the same.
+</div>
         <div class="form-group1">
           <label for="special">Specialization:</label>
           <select name="special" class="form-control" id="special">
@@ -741,6 +1203,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+function checkMatchingFields() {
+    var communityName = document.getElementById('community').value;
+    var communityUsername = document.getElementById('cname').value;
+    var errorMessage = document.getElementById('error-message');
+
+    if (communityName !== communityUsername) {
+      errorMessage.style.display = 'block';
+    } else {
+      errorMessage.style.display = 'none';
+    }
+  }
 </script>
 
 

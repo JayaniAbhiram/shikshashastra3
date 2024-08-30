@@ -7,6 +7,7 @@ if (!$con) {
 }
 error_reporting(0);
 $cn = $_GET['cn']; // Community No
+
 $un = $_GET['un'];
 $sp = $_GET['sp'];
 $em = $_GET['em'];
@@ -92,6 +93,10 @@ $ct = $_GET['ct']; // Get city
                         <input type="text" value="<?php echo htmlspecialchars($un); ?>" class="form-control" name="community">
                     </div>
                     <div class="form-group1">
+                        <label for="cname">Community username</label>
+                        <input type="text" value="<?php echo htmlspecialchars($un); ?>" class="form-control" name="cname">
+                    </div>
+                    <div>
                         <label for="special">Specialization:</label>
                         <select name="special" class="form-control" id="special">
                         <option value="" disabled>Select Specialization</option>
@@ -164,10 +169,18 @@ $ct = $_GET['ct']; // Get city
                 </div>
                 <div class="form-group1">
                     <button type="submit" name="submit" class="btn btn-primary">Update</button>
+                    <button type="button" onclick="deleteRecord('<?php echo htmlspecialchars($un); ?>')" class="btn btn-danger">Delete</button>
                 </div>
             </form>
         </div>
     </div>
+    <script>
+    function deleteRecord(username) {
+        if (confirm("Are you sure you want to delete this community?")) {
+            window.location.href = 'delete-community.php?username=' + encodeURIComponent(username);
+        }
+    }
+    </script>
 </body>
 
 </html>
@@ -175,6 +188,7 @@ $ct = $_GET['ct']; // Get city
 <?php
 if (isset($_GET['submit'])) {
     $community = $_GET['community'];
+    $cname = $_GET['cname'];
     $password = $_GET['dpassword'];
     $demail = $_GET['demail'];
     $special = $_GET['special'];
@@ -183,11 +197,175 @@ if (isset($_GET['submit'])) {
     $city = $_GET['city'];
     $cn = $_GET['cn']; // Community No
 
-    $query = "UPDATE community SET username='$community', password='$password', email='$demail', spec='$special', comPoints='$comPoints', state='$state', city='$city' WHERE community_no='$cn'";
+    $query = "UPDATE community SET username='$community', cname='$cname',password='$password', email='$demail', spec='$special', comPoints='$comPoints', state='$state', city='$city' WHERE community_no='$cn'";
     $data = mysqli_query($con, $query);
 
     if ($data) {
-        echo "<script>alert('Details updated successfully');window.location.href = 'admin-panel.php#list-settings1';</script>";
+        echo "
+        <div id='popup' class='popup'>
+            <div class='popup-content'>
+                <div class='popup-header'>
+                    <span class='close'>&times;</span>
+                    <h2>Success</h2>
+                </div>
+                <div class='popup-body'>
+                    <p>Details updated successfully</p>
+                </div>
+                <div class='popup-footer'>
+                    <button id='popup-ok' class='popup-button'>OK</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Show the popup with bounce animation
+            var popup = document.getElementById('popup');
+            var popupContent = document.querySelector('.popup-content');
+            var popupOk = document.getElementById('popup-ok');
+    
+            popup.style.display = 'block';
+            popupContent.classList.add('bounce-in');
+    
+            // Close the popup when the 'x' is clicked
+            document.querySelector('.close').onclick = function() {
+                popupContent.classList.remove('bounce-in');
+                popupContent.classList.add('fade-out');
+                setTimeout(function() {
+                    popup.style.display = 'none';
+                    window.location.href = 'admin-panel.php#list-settings1';
+                }, 800);
+            };
+    
+            // Close the popup when the OK button is clicked
+            popupOk.onclick = function() {
+                popupContent.classList.remove('bounce-in');
+                popupContent.classList.add('fade-out');
+                setTimeout(function() {
+                    popup.style.display = 'none';
+                    window.location.href = 'admin-panel.php#list-settings1';
+                }, 800);
+            };
+    
+            // Close the popup automatically after 3 seconds
+            setTimeout(function() {
+                popupContent.classList.remove('bounce-in');
+                popupContent.classList.add('fade-out');
+                setTimeout(function() {
+                    popup.style.display = 'none';
+                    window.location.href = 'admin-panel.php#list-settings1';
+                }, 800);
+            }, 3000);
+        </script>
+        <style>
+            /* Popup container */
+            .popup {
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.6);
+                animation: fadeIn 1s;
+            }
+    
+            /* Popup content */
+            .popup-content {
+                position: relative;
+                margin: 10% auto;
+                padding: 20px;
+                width: 50%;
+                max-width: 600px;
+                background-color: #fff;
+                border-radius: 15px;
+                text-align: center;
+                box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+                transform: scale(0.5);
+                opacity: 0;
+                transition: all 0.8s ease;
+            }
+    
+            /* Bounce-in animation */
+            .bounce-in {
+                transform: scale(1);
+                opacity: 1;
+                animation: bounceIn 1s ease-out;
+            }
+    
+            /* Fade-out animation */
+            .fade-out {
+                animation: fadeOut 0.8s ease-out;
+                transform: scale(0.5);
+                opacity: 0;
+            }
+    
+            /* Popup header */
+            .popup-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+    
+            .popup-header h2 {
+                margin: 0;
+                color: #444;
+            }
+    
+            /* Popup body */
+            .popup-body {
+                margin: 20px 0;
+            }
+    
+            /* Popup footer */
+            .popup-footer {
+                margin-top: 20px;
+            }
+    
+            /* Popup button */
+            .popup-button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: #4CAF50;
+                color: white;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+            }
+    
+            .popup-button:hover {
+                background-color: #45a049;
+            }
+    
+            /* Close button */
+            .close {
+                font-size: 24px;
+                font-weight: bold;
+                color: #888;
+                cursor: pointer;
+            }
+    
+            .close:hover {
+                color: #444;
+            }
+    
+            /* Animations */
+            @keyframes bounceIn {
+                0% { transform: scale(1.3); opacity: 0; }
+                50% { transform: scale(0.9); opacity: 1; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+    
+            @keyframes fadeOut {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+    
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+        </style>
+        ";
     } else {
         echo "Failed to update details: " . mysqli_error($con);
     }
@@ -212,21 +390,72 @@ if (isset($_POST['community_search_submit'])) {
 }
 ?>
 <?php
-include('connect.php');
+// include('connect.php');
 
-if (!$con) {
-    die("Connection failed: " . mysqli_connect_error());
-}
+// if (!$con) {
+//     die("Connection failed: " . mysqli_connect_error());
+// }
 
-if (isset($_GET['email'])) {
-    $email = $_GET['email'];
-    $query = "DELETE FROM community WHERE email='$email'";
-    $data = mysqli_query($con, $query);
+// if (isset($_GET['username'])) {
+//     $username = mysqli_real_escape_string($con, $_GET['username']);
+//     $query = "DELETE FROM community WHERE username = ?";
+    
+//     $stmt = mysqli_prepare($con, $query);
+//     mysqli_stmt_bind_param($stmt, "s", $username);
+//     mysqli_stmt_execute($stmt);
+    
+//     if (mysqli_affected_rows($con) > 0) {
+//         echo "<script>alert('Community deleted successfully');window.location.href = 'admin-panel.php#list-settings1';</script>";
+//     } else {
+//         echo "Failed to delete community or community not found.";
+//     }
+    
+//     mysqli_stmt_close($stmt);
+// } else {
+//     echo "No username provided for deletion.";
+// }
 
-    if ($data) {
-        echo "<script>alert('Record deleted successfully');window.location.href = 'admin-panel.php#list-settings1';</script>";
-    } else {
-        echo "Failed to delete record: " . mysqli_error($con);
-    }
-}
-?>
+// mysqli_close($con);
+
+// include('connect.php');
+
+// if (!$con) {
+//     die("Connection failed: " . mysqli_connect_error());
+// }
+
+// if (isset($_GET['username'])) {
+//     $username = mysqli_real_escape_string($con, $_GET['username']);
+
+//     // First, delete related records in the book table
+//     $delete_book_query = "DELETE FROM book WHERE community = ?";
+//     $stmt_book = mysqli_prepare($con, $delete_book_query);
+//     mysqli_stmt_bind_param($stmt_book, "s", $username);
+//     mysqli_stmt_execute($stmt_book);
+//     mysqli_stmt_close($stmt_book);
+
+//     // Then, delete related records in the feedback table
+//     $delete_feedback_query = "DELETE FROM feedback WHERE community = ?";
+//     $stmt_feedback = mysqli_prepare($con, $delete_feedback_query);
+//     mysqli_stmt_bind_param($stmt_feedback, "s", $username);
+//     mysqli_stmt_execute($stmt_feedback);
+//     mysqli_stmt_close($stmt_feedback);
+
+//     // Finally, delete the community from the community table
+//     $delete_community_query = "DELETE FROM community WHERE username = ?";
+//     $stmt_community = mysqli_prepare($con, $delete_community_query);
+//     mysqli_stmt_bind_param($stmt_community, "s", $username);
+//     mysqli_stmt_execute($stmt_community);
+
+//     if (mysqli_affected_rows($con) > 0) {
+//         echo "<script>alert('Community deleted successfully');window.location.href = 'admin-panel.php#list-settings1';</script>";
+//     } else {
+//         echo "Failed to delete community or community not found.";
+//     }
+
+//     mysqli_stmt_close($stmt_community);
+// } else {
+//     echo "No username provided for deletion.";
+// }
+
+// mysqli_close($con);
+// ?>

@@ -518,12 +518,15 @@ nav .sidebar-button i{
   justify-content: center;
   align-items: center;
   padding: 50px;
+ 
 }
 
 .form-container {
   margin-top: 50px;
   width: 80%;
   max-width: 500px;
+  
+  
 }
 
 .form-group1 {

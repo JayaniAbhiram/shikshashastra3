@@ -36,7 +36,165 @@ if (isset($_GET['accept'])) {
     $AppID = $_GET['AppID'];
     $sql = mysqli_query($con, "UPDATE book SET communityStatus= 0 WHERE AppID = '$AppID'");
     if ($sql) {
-        echo "<script>alert('Your slot was successfully accepted.');</script>";
+        echo "
+    <div id='popup' class='popup'>
+        <div class='popup-content'>
+            <div class='popup-header'>
+                <span class='close'>&times;</span>
+                <h2>Success</h2>
+            </div>
+            <div class='popup-body'>
+                <p>Your slot was successfully accepted.</p>
+            </div>
+            <div class='popup-footer'>
+                <button id='popup-ok' class='popup-button'>OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Show the popup with bounce animation
+        var popup = document.getElementById('popup');
+        var popupContent = document.querySelector('.popup-content');
+        var popupOk = document.getElementById('popup-ok');
+    
+        popup.style.display = 'block';
+        setTimeout(function() {
+            popupContent.classList.add('bounce-in');
+        }, 10); // Small delay to ensure the popup is visible before animation starts
+    
+        // Close the popup when the 'x' is clicked
+        document.querySelector('.close').onclick = function() {
+            closePopup();
+        };
+    
+        // Close the popup when the OK button is clicked
+        popupOk.onclick = function() {
+            closePopup();
+        };
+    
+        // Function to close the popup
+        function closePopup() {
+            popupContent.classList.remove('bounce-in');
+            popupContent.classList.add('fade-out');
+            setTimeout(function() {
+                popup.style.display = 'none';
+            }, 800); // Match the duration of the fade-out animation
+        }
+    
+        // Close the popup automatically after 3 seconds
+        setTimeout(closePopup, 3000);
+    </script>
+    <style>
+        /* Popup container */
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 1s;
+        }
+
+        /* Popup content */
+        .popup-content {
+            position: relative;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+            transform: scale(0.5);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        /* Bounce-in animation */
+        .bounce-in {
+            transform: scale(1);
+            opacity: 1;
+            animation: bounceIn 1s ease-out;
+        }
+
+        /* Fade-out animation */
+        .fade-out {
+            animation: fadeOut 0.8s ease-out;
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        /* Popup header */
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header h2 {
+            margin: 0;
+            color: #444;
+        }
+
+        /* Popup body */
+        .popup-body {
+            margin: 20px 0;
+        }
+
+        /* Popup footer */
+        .popup-footer {
+            margin-top: 20px;
+        }
+
+        /* Popup button */
+        .popup-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .popup-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Close button */
+        .close {
+            font-size: 24px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #444;
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(1.3); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+";
     }
 }
 
@@ -45,8 +203,167 @@ if (isset($_GET['cancel'])) {
     $query = mysqli_query($con, "UPDATE book SET userStatus = 0 WHERE AppID = '$AppID'");
     if ($query) {
         // echo "<script>alert('Your book was successfully cancelled.');</script>";
-        echo "<script>alert('Your book was successfully cancelled.');
-              window.location.href = 'community-panel.php';</script>";
+        echo "
+    <div id='popup' class='popup'>
+        <div class='popup-content'>
+            <div class='popup-header'>
+                <span class='close'>&times;</span>
+                <h2>Notification</h2>
+            </div>
+            <div class='popup-body'>
+                <p>Your book was successfully cancelled.</p>
+            </div>
+            <div class='popup-footer'>
+                <button id='popup-ok' class='popup-button'>OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Show the popup with bounce animation
+        var popup = document.getElementById('popup');
+        var popupContent = document.querySelector('.popup-content');
+        var popupOk = document.getElementById('popup-ok');
+    
+        popup.style.display = 'block';
+        setTimeout(function() {
+            popupContent.classList.add('bounce-in');
+        }, 10); // Small delay to ensure the popup is visible before animation starts
+    
+        // Close the popup when the 'x' is clicked
+        document.querySelector('.close').onclick = function() {
+            closePopup();
+        };
+    
+        // Close the popup when the OK button is clicked
+        popupOk.onclick = function() {
+            closePopup();
+        };
+    
+        // Function to close the popup and redirect
+        function closePopup() {
+            popupContent.classList.remove('bounce-in');
+            popupContent.classList.add('fade-out');
+            setTimeout(function() {
+                popup.style.display = 'none';
+                window.location.href = 'community-panel.php'; // Redirect to the desired page
+            }, 800); // Match the duration of the fade-out animation
+        }
+    
+        // Close the popup automatically after 3 seconds and redirect
+        setTimeout(closePopup, 3000);
+    </script>
+    <style>
+        /* Popup container */
+        .popup {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 1s;
+        }
+
+        /* Popup content */
+        .popup-content {
+            position: relative;
+            margin: 10% auto;
+            padding: 20px;
+            width: 50%;
+            max-width: 600px;
+            background-color: #fff;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+            transform: scale(0.5);
+            opacity: 0;
+            transition: all 0.8s ease;
+        }
+
+        /* Bounce-in animation */
+        .bounce-in {
+            transform: scale(1);
+            opacity: 1;
+            animation: bounceIn 1s ease-out;
+        }
+
+        /* Fade-out animation */
+        .fade-out {
+            animation: fadeOut 0.8s ease-out;
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        /* Popup header */
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-header h2 {
+            margin: 0;
+            color: #444;
+        }
+
+        /* Popup body */
+        .popup-body {
+            margin: 20px 0;
+        }
+
+        /* Popup footer */
+        .popup-footer {
+            margin-top: 20px;
+        }
+
+        /* Popup button */
+        .popup-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .popup-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Close button */
+        .close {
+            font-size: 24px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #444;
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(1.3); opacity: 0; }
+            50% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+";
+
         exit;
     }
 }
@@ -138,29 +455,35 @@ if (isset($_GET['prescribe'])) {
     <div class="section-container" id="sections">
         <!-- Navbar content -->
         <nav class="doc-nav">
-            <div class="welcome">
-                <i class='bx bx-menu sidebarBtn'></i>
-                <span class="admin"><?php if (isset($_SESSION['dname'])) {
-    $community = $_SESSION['dname'];
-    // Now you can use $community safely
-} else {
-    // Handle the case when 'dname' is not set
-    // For example, redirect the user to the login page or display an error message
-} ?></span>
+    <div class="welcome">
+        <i class='bx bx-menu sidebarBtn'></i>
+        <span class="admin">
+            <?php 
+            if (isset($_SESSION['dname'])) {
+                $community = $_SESSION['dname'];
+                
+                echo "Welcome, " ,htmlspecialchars($community, ENT_QUOTES, 'UTF-8'); // Display the community username
+            } else {
+                // Handle the case when 'dname' is not set
+                echo "Guest"; // Optionally display a default message or redirect
+            }
+            ?>
+        </span>
+    </div>
+    <div>
+        <form class="form-group" name="searchForm" onsubmit="return validateForm()" method="post" action="search.php">
+            <div class="psearch">
+                <div class="email-field">
+                    <input class="form-control" type="text" placeholder="Search here" aria-label="Search" name="contact">
+                </div>
+                <div class="submit-btn">
+                    <input type="submit" class="btn btn-primary" id="inputbtn" name="search_submit" value="Search">
+                </div>
             </div>
-            <div>
-                <form class="form-group" name="searchForm" onsubmit="return validateForm()" method="post" action="search.php">
-                    <div class="psearch">
-                        <div class="email-field">
-                            <input class="form-control" type="text" placeholder="Search here" aria-label="Search" name="contact">
-                        </div>
-                        <div class="submit-btn">
-                            <input type="submit" class="btn btn-primary" id="inputbtn" name="search_submit" value="Search">
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </nav>
+        </form>
+    </div>
+</nav>
+
 
         <!-- Default contents and dashboard contents -->
         <div class="home-content" id="list-dash">
@@ -213,7 +536,8 @@ $dname = isset($_SESSION['dname']) ? $_SESSION['dname'] : '';
 $query = "SELECT b.pid, b.AppID, b.fname, b.lname, b.gender, b.email, b.contact, b.appdate, b.apptime, b.userStatus, b.communityStatus, v.total_points
           FROM book b
           JOIN volunteer v ON b.fname = v.fname AND b.lname = v.lname
-          WHERE b.community = '$dname';";
+          WHERE b.community = '$dname'
+          order by b.AppID desc";
 $result = mysqli_query($con, $query);
 ?>
 <div class="home-content" id="list-app">
@@ -309,7 +633,7 @@ $result = mysqli_query($con, $query);
                     // $con = mysqli_connect("localhost", "root", "", "checkss");
                     global $con;
 
-                    $query = "SELECT pid, fname, lname, AppID, appdate, apptime, feedpoints, feedback FROM feedback WHERE community = '$community';";
+                    $query = "SELECT pid, fname, lname, AppID, appdate, apptime, feedpoints, feedback FROM feedback WHERE community = '$community' order by pid desc";
 
                     $result = mysqli_query($con, $query);
                     if (!$result) {

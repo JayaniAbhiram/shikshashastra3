@@ -24,7 +24,7 @@ $stateQuery = "SELECT DISTINCT state FROM community WHERE state IS NOT NULL AND 
 $stateResult = mysqli_query($con, $stateQuery);
 
 // Fetch all state-city-spec-community combinations from the community table
-$dataQuery = "SELECT DISTINCT state, city, spec, username AS community FROM community WHERE state IS NOT NULL AND state != '' AND city IS NOT NULL AND city != '' ORDER BY state, city, spec, username";
+$dataQuery = "SELECT DISTINCT state, city, spec, cname AS community FROM community WHERE state IS NOT NULL AND state != '' AND city IS NOT NULL AND city != '' ORDER BY state, city, spec, cname";
 $dataResult = mysqli_query($con, $dataQuery);
 
 $stateData = array();
@@ -40,51 +40,513 @@ while ($row = mysqli_fetch_assoc($dataResult)) {
     }
     $stateData[$row['state']][$row['city']][$row['spec']][] = $row['community'];
 }
+$email = $_SESSION['email'];
+
+// Check if the volunteer's documents are accepted
+$checkAcceptedQuery = "SELECT status FROM volunteer_documents WHERE gmail = ? AND status = 'yes'";
+$stmt = $con->prepare($checkAcceptedQuery);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$acceptedResult = $stmt->get_result();
+$accepted = $acceptedResult->num_rows > 0;
 
 if (isset($_POST['app-submit'])) {
-  if (empty($_POST['state']) || empty($_POST['city']) || empty($_POST['spec']) || empty($_POST['community']) || empty($_POST['appdate']) || empty($_POST['apptime'])) {
-      echo "<script>alert('Please fill in all required fields.');</script>";
-  } else {
-      $state = $_POST['state'];
-      $city = $_POST['city'];
-      $spec = $_POST['spec'];
-      $community = $_POST['community'];
-      $appdate = $_POST['appdate'];
-      $apptime = $_POST['apptime'];
-      $cur_date = date("Y-m-d");
-      date_default_timezone_set('Asia/Kathmandu');
-      $cur_time = date("H:i:s");
-      $apptime1 = strtotime($apptime);
-      $appdate1 = strtotime($appdate);
-
-      $oneMonthFromNow = date("Y-m-d", strtotime("+1 month"));
-
-      if ($appdate1 < strtotime($oneMonthFromNow)) {
-          if (date("Y-m-d", $appdate1) >= $cur_date) {
-              if ((date("Y-m-d", $appdate1) == $cur_date && date("H:i:s", $apptime1) > $cur_time) || date("Y-m-d", $appdate1) > $cur_date) {
-                  $check_query = mysqli_query($con, "SELECT apptime FROM book WHERE community='$community' AND appdate='$appdate' AND apptime='$apptime' AND (userStatus='1' AND communityStatus='1')");
-
-                  if (mysqli_num_rows($check_query) == 0) {
-                      $query = mysqli_query($con, "INSERT INTO book(pid,fname,lname,gender,email,contact,state,city,spec,community,appdate,apptime,userStatus,communityStatus) VALUES($pid,'$fname','$lname','$gender','$email','$contact','$state','$city','$spec','$community','$appdate','$apptime','1','1')");
-
-                      if ($query) {
-                          echo "<script>alert('Your booking was successful.');</script>";
-                      } else {
-                          echo "<script>alert('Unable to process your request. Please try again!');</script>";
-                      }
-                  } else {
-                      echo "<script>alert('We are sorry to inform that the community is not available at this time or date. Please choose a different time or date!');</script>";
-                  }
-              } else {
-                  echo "<script>alert('Select a time or date in the future!');</script>";
-              }
-          } else {
-              echo "<script>alert('Select a time or date in the future!');</script>";
+    if (!$accepted) {
+      echo "
+      <div id='document-error-popup' class='error-popup'>
+          <div class='error-popup-content'>
+              <div class='error-popup-header'>
+                  <h2>Error</h2>
+              </div>
+              <div class='error-popup-body'>
+                  <p>Your documents are not accepted yet. Please ensure your documents are accepted before making a booking.</p>
+              </div>
+              <div class='error-popup-footer'>
+                  <button id='document-error-popup-ok' class='error-popup-button'>OK</button>
+              </div>
+          </div>
+      </div>
+      <style>
+          /* Popup container */
+          .error-popup {
+              display: none;
+              position: fixed;
+              z-index: 1;
+              left: 0;
+              top: 0;
+              width: 100%;
+              height: 100%;
+              background-color: rgba(0, 0, 0, 0.6);
+              animation: fadeIn 1s;
           }
-      } else {
-          echo "<script>alert('Select a date within one month from now!');</script>";
-      }
-  }
+  
+          /* Popup content */
+          .error-popup-content {
+              position: relative;
+              margin: 10% auto;
+              padding: 20px;
+              width: 50%;
+              max-width: 600px;
+              background-color: #fff;
+              border-radius: 15px;
+              text-align: center;
+              box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+              transform: scale(0.5);
+              opacity: 0;
+              transition: all 0.8s ease;
+          }
+  
+          .error-show-popup {
+              transform: scale(1);
+              opacity: 1;
+              animation: bounceIn 1s ease-out;
+          }
+  
+          .error-hide-popup {
+              animation: fadeOut 0.8s ease-out;
+              transform: scale(0.5);
+              opacity: 0;
+          }
+  
+          .error-popup-header {
+              margin-bottom: 20px;
+          }
+  
+          .error-popup-header h2 {
+              margin: 0;
+              color: #f44336;
+          }
+  
+          .error-popup-body {
+              margin-bottom: 20px;
+          }
+  
+          .error-popup-footer {
+              margin-top: 20px;
+          }
+  
+          .error-popup-button {
+              padding: 10px 20px;
+              border: none;
+              border-radius: 5px;
+              background-color: #f44336;
+              color: white;
+              cursor: pointer;
+              transition: background-color 0.3s ease;
+          }
+  
+          .error-popup-button:hover {
+              background-color: #e53935;
+          }
+  
+          @keyframes bounceIn {
+              0% { transform: scale(1.3); opacity: 0; }
+              50% { transform: scale(0.9); opacity: 1; }
+              100% { transform: scale(1); opacity: 1; }
+          }
+  
+          @keyframes fadeOut {
+              0% { opacity: 1; }
+              100% { opacity: 0; }
+          }
+  
+          @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+          }
+      </style>
+      <script>
+          // Show the error popup
+          var popup = document.getElementById('document-error-popup');
+          var popupContent = document.querySelector('.error-popup-content');
+          var popupOk = document.getElementById('document-error-popup-ok');
+  
+          popup.style.display = 'block';
+          popupContent.classList.add('error-show-popup');
+  
+          // Close the popup when the OK button is clicked
+          popupOk.onclick = function() {
+              popupContent.classList.remove('error-show-popup');
+              popupContent.classList.add('error-hide-popup');
+              setTimeout(function() {
+                  popup.style.display = 'none';
+              }, 800);
+          };
+  
+          // Automatically close the popup after 5 seconds
+          setTimeout(function() {
+              popupContent.classList.remove('error-show-popup');
+              popupContent.classList.add('error-hide-popup');
+              setTimeout(function() {
+                  popup.style.display = 'none';
+              }, 800);
+          }, 5000);
+      </script>
+      ";
+    } else {
+        // Existing booking logic here...
+        if (empty($_POST['state']) || empty($_POST['city']) || empty($_POST['spec']) || empty($_POST['community']) || empty($_POST['appdate']) || empty($_POST['apptime'])) {
+            echo "<script>alert('Please fill in all required fields.');</script>";
+        } else {
+            $state = $_POST['state'];
+            $city = $_POST['city'];
+            $spec = $_POST['spec'];
+            $community = $_POST['community'];
+            $appdate = $_POST['appdate'];
+            $apptime = $_POST['apptime'];
+            $cur_date = date("Y-m-d");
+            date_default_timezone_set('Asia/Kathmandu');
+            $cur_time = date("H:i:s");
+            $apptime1 = strtotime($apptime);
+            $appdate1 = strtotime($appdate);
+
+            $oneMonthFromNow = date("Y-m-d", strtotime("+1 month"));
+
+            if ($appdate1 < strtotime($oneMonthFromNow)) {
+                if (date("Y-m-d", $appdate1) >= $cur_date) {
+                    if ((date("Y-m-d", $appdate1) == $cur_date && date("H:i:s", $apptime1) > $cur_time) || date("Y-m-d", $appdate1) > $cur_date) {
+                        $check_query = mysqli_query($con, "SELECT apptime FROM book WHERE community='$community' AND appdate='$appdate' AND apptime='$apptime' AND (userStatus='1' AND communityStatus='1')");
+
+                        if (mysqli_num_rows($check_query) == 0) {
+                            $query = mysqli_query($con, "INSERT INTO book(pid, fname, lname, gender, email, contact, state, city, spec, community, appdate, apptime, userStatus, communityStatus) VALUES($pid, '$fname', '$lname', '$gender', '$email', '$contact', '$state', '$city', '$spec', '$community', '$appdate', '$apptime', '1', '1')");
+
+                            if ($query) {
+                              echo "
+                              <div id='popup' class='popup'>
+                                  <div class='popup-content'>
+                                      <div class='popup-header'>
+                                          <span class='close'>&times;</span>
+                                          <h2>Success</h2>
+                                      </div>
+                                      <div class='popup-body'>
+                                          <p>Your booking was successful.</p>
+                                      </div>
+                                      <div class='popup-footer'>
+                                          <button id='popup-ok' class='popup-button'>OK</button>
+                                      </div>
+                                  </div>
+                              </div>
+                              <script>
+                                  // Show the popup with bounce animation
+                                  var popup = document.getElementById('popup');
+                                  var popupContent = document.querySelector('.popup-content');
+                                  var popupOk = document.getElementById('popup-ok');
+                              
+                                  popup.style.display = 'block';
+                                  setTimeout(function() {
+                                      popupContent.classList.add('bounce-in');
+                                  }, 10); // Small delay to ensure the popup is visible before animation starts
+                              
+                                  // Close the popup when the 'x' is clicked
+                                  document.querySelector('.close').onclick = function() {
+                                      closePopup();
+                                  };
+                              
+                                  // Close the popup when the OK button is clicked
+                                  popupOk.onclick = function() {
+                                      closePopup();
+                                  };
+                              
+                                  // Function to close the popup
+                                  function closePopup() {
+                                      popupContent.classList.remove('bounce-in');
+                                      popupContent.classList.add('fade-out');
+                                      setTimeout(function() {
+                                          popup.style.display = 'none';
+                                      }, 800); // Match the duration of the fade-out animation
+                                  }
+                              
+                                  // Close the popup automatically after 3 seconds
+                                  setTimeout(closePopup, 3000);
+                              </script>
+                              <style>
+                                  /* Popup container */
+                                  .popup {
+                                      display: none;
+                                      position: fixed;
+                                      z-index: 1;
+                                      left: 0;
+                                      top: 0;
+                                      width: 100%;
+                                      height: 100%;
+                                      background-color: rgba(0, 0, 0, 0.6);
+                                      animation: fadeIn 1s;
+                                  }
+                          
+                                  /* Popup content */
+                                  .popup-content {
+                                      position: relative;
+                                      margin: 10% auto;
+                                      padding: 20px;
+                                      width: 50%;
+                                      max-width: 600px;
+                                      background-color: #fff;
+                                      border-radius: 15px;
+                                      text-align: center;
+                                      box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+                                      transform: scale(0.5);
+                                      opacity: 0;
+                                      transition: all 0.8s ease;
+                                  }
+                          
+                                  /* Bounce-in animation */
+                                  .bounce-in {
+                                      transform: scale(1);
+                                      opacity: 1;
+                                      animation: bounceIn 1s ease-out;
+                                  }
+                          
+                                  /* Fade-out animation */
+                                  .fade-out {
+                                      animation: fadeOut 0.8s ease-out;
+                                      transform: scale(0.5);
+                                      opacity: 0;
+                                  }
+                          
+                                  /* Popup header */
+                                  .popup-header {
+                                      display: flex;
+                                      justify-content: space-between;
+                                      align-items: center;
+                                  }
+                          
+                                  .popup-header h2 {
+                                      margin: 0;
+                                      color: #444;
+                                  }
+                          
+                                  /* Popup body */
+                                  .popup-body {
+                                      margin: 20px 0;
+                                  }
+                          
+                                  /* Popup footer */
+                                  .popup-footer {
+                                      margin-top: 20px;
+                                  }
+                          
+                                  /* Popup button */
+                                  .popup-button {
+                                      padding: 10px 20px;
+                                      border: none;
+                                      border-radius: 5px;
+                                      background-color: #4CAF50;
+                                      color: white;
+                                      cursor: pointer;
+                                      transition: background-color 0.3s ease;
+                                  }
+                          
+                                  .popup-button:hover {
+                                      background-color: #45a049;
+                                  }
+                          
+                                  /* Close button */
+                                  .close {
+                                      font-size: 24px;
+                                      font-weight: bold;
+                                      color: #888;
+                                      cursor: pointer;
+                                  }
+                          
+                                  .close:hover {
+                                      color: #444;
+                                  }
+                          
+                                  /* Animations */
+                                  @keyframes bounceIn {
+                                      0% { transform: scale(1.3); opacity: 0; }
+                                      50% { transform: scale(0.9); opacity: 1; }
+                                      100% { transform: scale(1); opacity: 1; }
+                                  }
+                          
+                                  @keyframes fadeOut {
+                                      0% { opacity: 1; }
+                                      100% { opacity: 0; }
+                                  }
+                          
+                                  @keyframes fadeIn {
+                                      from { opacity: 0; }
+                                      to { opacity: 1; }
+                                  }
+                              </style>
+                          ";
+                          
+                            } else {
+                                echo "<script>alert('Unable to process your request. Please try again!');</script>";
+                            }
+                        } else {
+                          echo "
+                          <div id='popup' class='popup'>
+                              <div class='popup-content'>
+                                  <div class='popup-header'>
+                                      <span class='close'>&times;</span>
+                                      <h2>Notification</h2>
+                                  </div>
+                                  <div class='popup-body'>
+                                      <p>We are sorry to inform that the community is not available at this time or date. Please choose a different time or date!</p>
+                                  </div>
+                                  <div class='popup-footer'>
+                                      <button id='popup-ok' class='popup-button'>OK</button>
+                                  </div>
+                              </div>
+                          </div>
+                          <script>
+                              // Show the popup with bounce animation
+                              var popup = document.getElementById('popup');
+                              var popupContent = document.querySelector('.popup-content');
+                              var popupOk = document.getElementById('popup-ok');
+                          
+                              popup.style.display = 'block';
+                              setTimeout(function() {
+                                  popupContent.classList.add('bounce-in');
+                              }, 10); // Small delay to ensure the popup is visible before animation starts
+                          
+                              // Close the popup when the 'x' is clicked
+                              document.querySelector('.close').onclick = function() {
+                                  closePopup();
+                              };
+                          
+                              // Close the popup when the OK button is clicked
+                              popupOk.onclick = function() {
+                                  closePopup();
+                              };
+                          
+                              // Function to close the popup
+                              function closePopup() {
+                                  popupContent.classList.remove('bounce-in');
+                                  popupContent.classList.add('fade-out');
+                                  setTimeout(function() {
+                                      popup.style.display = 'none';
+                                  }, 800); // Match the duration of the fade-out animation
+                              }
+                          
+                              // Close the popup automatically after 3 seconds
+                              setTimeout(closePopup, 3000);
+                          </script>
+                          <style>
+                              /* Popup container */
+                              .popup {
+                                  display: none;
+                                  position: fixed;
+                                  z-index: 1;
+                                  left: 0;
+                                  top: 0;
+                                  width: 100%;
+                                  height: 100%;
+                                  background-color: rgba(0, 0, 0, 0.6);
+                                  animation: fadeIn 1s;
+                              }
+                      
+                              /* Popup content */
+                              .popup-content {
+                                  position: relative;
+                                  margin: 10% auto;
+                                  padding: 20px;
+                                  width: 50%;
+                                  max-width: 600px;
+                                  background-color: #fff;
+                                  border-radius: 15px;
+                                  text-align: center;
+                                  box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.4);
+                                  transform: scale(0.5);
+                                  opacity: 0;
+                                  transition: all 0.8s ease;
+                              }
+                      
+                              /* Bounce-in animation */
+                              .bounce-in {
+                                  transform: scale(1);
+                                  opacity: 1;
+                                  animation: bounceIn 1s ease-out;
+                              }
+                      
+                              /* Fade-out animation */
+                              .fade-out {
+                                  animation: fadeOut 0.8s ease-out;
+                                  transform: scale(0.5);
+                                  opacity: 0;
+                              }
+                      
+                              /* Popup header */
+                              .popup-header {
+                                  display: flex;
+                                  justify-content: space-between;
+                                  align-items: center;
+                              }
+                      
+                              .popup-header h2 {
+                                  margin: 0;
+                                  color: #444;
+                              }
+                      
+                              /* Popup body */
+                              .popup-body {
+                                  margin: 20px 0;
+                              }
+                      
+                              /* Popup footer */
+                              .popup-footer {
+                                  margin-top: 20px;
+                              }
+                      
+                              /* Popup button */
+                              .popup-button {
+                                  padding: 10px 20px;
+                                  border: none;
+                                  border-radius: 5px;
+                                  background-color: #4CAF50;
+                                  color: white;
+                                  cursor: pointer;
+                                  transition: background-color 0.3s ease;
+                              }
+                      
+                              .popup-button:hover {
+                                  background-color: #45a049;
+                              }
+                      
+                              /* Close button */
+                              .close {
+                                  font-size: 24px;
+                                  font-weight: bold;
+                                  color: #888;
+                                  cursor: pointer;
+                              }
+                      
+                              .close:hover {
+                                  color: #444;
+                              }
+                      
+                              /* Animations */
+                              @keyframes bounceIn {
+                                  0% { transform: scale(1.3); opacity: 0; }
+                                  50% { transform: scale(0.9); opacity: 1; }
+                                  100% { transform: scale(1); opacity: 1; }
+                              }
+                      
+                              @keyframes fadeOut {
+                                  0% { opacity: 1; }
+                                  100% { opacity: 0; }
+                              }
+                      
+                              @keyframes fadeIn {
+                                  from { opacity: 0; }
+                                  to { opacity: 1; }
+                              }
+                          </style>
+                      ";
+                      
+                        }
+                    } else {
+                        echo "<script>alert('Select a time or date in the future!');</script>";
+                    }
+                } else {
+                    echo "<script>alert('Select a time or date in the future!');</script>";
+                }
+            } else {
+                echo "<script>alert('Select a date within one month from now!');</script>";
+            }
+        }
+    }
 }
 
 
@@ -501,7 +963,7 @@ function validateBookingForm() {
             // $con = mysqli_connect("localhost", "root", "", "checkss");
             global $con;
 
-            $query = "SELECT AppID, community, comPoints, appdate, apptime, userStatus, communityStatus FROM book WHERE fname ='$fname' AND lname='$lname';";
+            $query = "SELECT AppID, community, comPoints, appdate, apptime, userStatus, communityStatus FROM book WHERE fname ='$fname' AND lname='$lname' ORDER BY AppID desc";
             $result = mysqli_query($con, $query);
             while ($row = mysqli_fetch_array($result)) {
               $community = $row['community'];
@@ -579,7 +1041,7 @@ function validateBookingForm() {
                 <?php
                 global $con;
 
-                $query = "SELECT community, AppID, appdate, apptime, feedpoints, feedback FROM feedback WHERE pid='$pid';";
+                $query = "SELECT community, AppID, appdate, apptime, feedpoints, feedback FROM feedback WHERE pid='$pid' order by AppID desc;";
                 $result = mysqli_query($con, $query);
                 
                 if (!$result) {
@@ -671,11 +1133,11 @@ function validateBookingForm() {
         }
     </script>
 
-
-<div class="home-content" id="uploaddocuments">
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #e0e0e0;">
-        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: 90%; max-width: 600px;">
-            <h1 style="text-align: center; color: #333;">Upload Volunteer Documents</h1>
+<!-- uploading the documetnts -->
+<div class="home-content" id="uploaddocuments" >
+    <div style="display: flex; justify-content: center; align-items: center; background-color: transparent;">
+        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: 90%; max-width: 600px;overflow-y:auto;">
+            <!-- <h1 style="text-align: center; color: #333;">Upload Volunteer Documents</h1> -->
             <form action="volunteer-panel.php" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
                 <label for="name" style="font-weight: bold; color: #555;">Name:</label>
                 <input type="text" name="name" id="name" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
@@ -684,87 +1146,102 @@ function validateBookingForm() {
                 <input type="email" name="gmail" id="gmail" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
 
                 <label for="file1" style="font-weight: bold; color: #555;">Choose File 1 (Aadhar Card):</label>
-                <input type="file" name="file1" id="file1" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+<input type="file" name="file1" id="file1" accept=".pdf" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
 
-                <label for="file2" style="font-weight: bold; color: #555;">Choose File 2 (12th Mark Sheet):</label>
-                <input type="file" name="file2" id="file2" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+<label for="file2" style="font-weight: bold; color: #555;">Choose File 2 (12th Mark Sheet):</label>
+<input type="file" name="file2" id="file2" accept=".pdf" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
 
-                <label for="file3" style="font-weight: bold; color: #555;">Choose File 3 (Graduation Certificate):</label>
-                <input type="file" name="file3" id="file3" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+<label for="file3" style="font-weight: bold; color: #555;">Choose File 3 (Graduation Certificate):</label>
+<input type="file" name="file3" id="file3" accept=".pdf" required style="border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+
 
                 <button type="submit" name="upload" style="background-color: #28a745; color: #fff; border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
                     Upload Files
                 </button>
             </form>
             <?php
-            include("connect.php");
+include("connect.php");
 
-            if (isset($_POST['upload'])) {
-                $name = $_POST['name'];
-                $gmail = $_POST['gmail'];
+if (isset($_POST['upload'])) {
+    $name = $_POST['name'];
+    $gmail = $_POST['gmail'];
 
-                // Check connection
-                if ($con->connect_error) {
-                    die("Connection failed: " . $con->connect_error);
-                }
+    // Check connection
+    if ($con->connect_error) {
+        die("Connection failed: " . $con->connect_error);
+    }
 
-                // Check if name or gmail already exists
-                $checkQuery = "SELECT id FROM volunteer_documents WHERE name = ? OR gmail = ?";
-                $stmtCheck = $con->prepare($checkQuery);
-                $stmtCheck->bind_param("ss", $name, $gmail);
-                $stmtCheck->execute();
-                $stmtCheck->store_result();
+    // Check if name or gmail already exists
+    $checkQuery = "SELECT id FROM volunteer_documents WHERE name = ? OR gmail = ?";
+    $stmtCheck = $con->prepare($checkQuery);
+    $stmtCheck->bind_param("ss", $name, $gmail);
+    $stmtCheck->execute();
+    $stmtCheck->store_result();
 
-                if ($stmtCheck->num_rows > 0) {
-                    echo "<script>alert('Documents already uploaded with this name or Gmail.');</script>";
-                } else {
-                    // Directory for uploads
-                    $uploadDir = 'uploads/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0777, true);
-                    }
+    if ($stmtCheck->num_rows > 0) {
+        echo "<script>alert('Documents already uploaded with this name or Gmail.');</script>";
+    } else {
+        // Directory for uploads
+        $uploadDir = 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
 
-                    // File paths
-                    $file1Path = $file2Path = $file3Path = '';
+        // File paths
+        $file1Path = $file2Path = $file3Path = '';
 
-                    // File 1 upload
-                    if ($_FILES['file1']['error'] == 0) {
-                        $file1Path = $uploadDir . basename($_FILES['file1']['name']);
-                        move_uploaded_file($_FILES['file1']['tmp_name'], $file1Path);
-                    }
+        // Function to check if file is PDF
+        function isPdf($file) {
+            return isset($file['type']) && $file['type'] === 'application/pdf';
+        }
 
-                    // File 2 upload
-                    if ($_FILES['file2']['error'] == 0) {
-                        $file2Path = $uploadDir . basename($_FILES['file2']['name']);
-                        move_uploaded_file($_FILES['file2']['tmp_name'], $file2Path);
-                    }
+        // File 1 upload
+        if ($_FILES['file1']['error'] == 0 && isPdf($_FILES['file1'])) {
+            $file1Path = $uploadDir . basename($_FILES['file1']['name']);
+            move_uploaded_file($_FILES['file1']['tmp_name'], $file1Path);
+        } else {
+            echo "<script>alert('File 1 must be a PDF document.');</script>";
+        }
 
-                    // File 3 upload
-                    if ($_FILES['file3']['error'] == 0) {
-                        $file3Path = $uploadDir . basename($_FILES['file3']['name']);
-                        move_uploaded_file($_FILES['file3']['tmp_name'], $file3Path);
-                    }
+        // File 2 upload
+        if ($_FILES['file2']['error'] == 0 && isPdf($_FILES['file2'])) {
+            $file2Path = $uploadDir . basename($_FILES['file2']['name']);
+            move_uploaded_file($_FILES['file2']['tmp_name'], $file2Path);
+        } else {
+            echo "<script>alert('File 2 must be a PDF document.');</script>";
+        }
 
-                    // Insert into database
-                    $insertQuery = "INSERT INTO volunteer_documents (name, gmail, file1_path, file2_path, file3_path) VALUES (?, ?, ?, ?, ?)";
-                    $stmtInsert = $con->prepare($insertQuery);
-                    $stmtInsert->bind_param("sssss", $name, $gmail, $file1Path, $file2Path, $file3Path);
+        // File 3 upload
+        if ($_FILES['file3']['error'] == 0 && isPdf($_FILES['file3'])) {
+            $file3Path = $uploadDir . basename($_FILES['file3']['name']);
+            move_uploaded_file($_FILES['file3']['tmp_name'], $file3Path);
+        } else {
+            echo "<script>alert('File 3 must be a PDF document.');</script>";
+        }
 
-                    // Execute and check success
-                    if ($stmtInsert->execute()) {
-                        echo "<script>alert('Documents successfully submitted and inserted into the database.');</script>";
-                    } else {
-                        echo "<p style='color: #dc3545; text-align: center;'>Error: " . $stmtInsert->error . "</p>";
-                    }
+        // Insert into database
+        if ($file1Path && $file2Path && $file3Path) {
+            $insertQuery = "INSERT INTO volunteer_documents (name, gmail, file1_path, file2_path, file3_path) VALUES (?, ?, ?, ?, ?)";
+            $stmtInsert = $con->prepare($insertQuery);
+            $stmtInsert->bind_param("sssss", $name, $gmail, $file1Path, $file2Path, $file3Path);
 
-                    $stmtInsert->close();
-                }
-
-                // Close connections
-                $stmtCheck->close();
-                $con->close();
+            // Execute and check success
+            if ($stmtInsert->execute()) {
+                echo "<script>alert('Documents successfully submitted and inserted into the database.');</script>";
+            } else {
+                echo "<p style='color: #dc3545; text-align: center;'>Error: " . $stmtInsert->error . "</p>";
             }
-            ?>
+
+            $stmtInsert->close();
+        }
+    }
+
+    // Close connections
+    $stmtCheck->close();
+    $con->close();
+}
+?>
+
         </div>
     </div>
 </div>
